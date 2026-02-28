@@ -23,28 +23,27 @@ export default function LoginScreen() {
   });
 
   const onSubmit = async (data: LoginForm) => {
-    if (loading) return;
+  if (loading) return;
 
-    setLoading(true);
+  setLoading(true);
 
+  try {
     const result = await authRepository.login(
       data.identifier,
       data.password
     );
 
-    setLoading(false);
-
-    if (!result.success) {
-      Alert.alert("Login Failed", "Invalid email/phone or password");
-      return;
-    }
-
-    // ✅ Login success
-
-
- 
     router.replace("/(tabs)/homePage");
-  };
+  } catch (err: any) {
+    Alert.alert(
+      "Login failed",
+      err?.response?.data?.detail ||
+        "Invalid email/phone or password"
+    );
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <View style={{ padding: 20 }}>

@@ -1,18 +1,14 @@
-import { database } from "@/dataBase";
 import { registerApi, loginApi } from "./authApi";
 import { tokenStorage } from "./tokenStorage";
 
-const usersCollection = database.collections.get("users");
-
 export const authRepository = {
-  // ✅ REGISTER (backend-first)
+ 
   async registerUser(data: {
     fullName: string;
     email: string;
     phone: string;
     password: string;
   }) {
-    // 1️⃣ Register on backend
     await registerApi({
       full_name: data.fullName,
       email: data.email,
@@ -20,36 +16,20 @@ export const authRepository = {
       password: data.password,
     });
 
-    // 2️⃣ Cache user locally (NO password)
-    await database.write(async () => {
-      const existing = await usersCollection.query().fetch();
-
-      const alreadyExists = existing.find(
-        (u: any) => u.email === data.email || u.phone === data.phone,
-      );
-
-      if (!alreadyExists) {
-        await usersCollection.create((user: any) => {
-          user.fullName = data.fullName;
-          user.email = data.email;
-          user.phone = data.phone;
-          user.password = ""; // ❌ never store password
-        });
-      }
-    });
-
     return { success: true };
   },
 
   // ✅ LOGIN (backend verified)
   async login(identifier: string, password: string) {
-    // 1️⃣ Login via backend
     const tokens = await loginApi(identifier, password);
 
-    // 2️⃣ Store JWT in AsyncStorage
+    // store JWT securely
     await tokenStorage.save(tokens.access, tokens.refresh);
 
-    return { success: true };
+    return {
+      success: true,
+      user: tokens.user, // optional (if backend returns user)
+    };
   },
 
   // ✅ LOGOUT
@@ -58,9 +38,9 @@ export const authRepository = {
     return { success: true };
   },
 
-  // ✅ CHECK AUTH (app start)
+  // ✅ CHECK AUTH (app start / splash)
   async isLoggedIn() {
     const token = await tokenStorage.getAccess();
-    return !!token;
+    return Boolean(token);
   },
-};  
+};
