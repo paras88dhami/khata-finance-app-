@@ -6,8 +6,8 @@ export const loginSchema = z.object({
     .min(1, "Email or phone is required")
     .refine(
       (value) =>
-        /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) || // email
-        /^[0-9]{7,15}$/.test(value),               // phone
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) || 
+        /^[0-9]{7,15}$/.test(value),              
       {
         message: "Enter a valid email or phone number",
       }
